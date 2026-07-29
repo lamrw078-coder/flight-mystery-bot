@@ -76,7 +76,7 @@ function createGrannyMenu(p) {
     .setPlaceholder('選擇問題或行動');
 
   if (!p.questions.whereabouts) {
-    m.addOptions(option('細路女去向', '🧭', 'granny_whereabouts'));
+    m.addOptions(option('細路女去向', '📍', 'granny_whereabouts'));
   }
   if (!p.questions.appearance) {
     m.addOptions(option('細路女外貌', '👧', 'granny_appearance'));
@@ -92,13 +92,16 @@ function createGuMenu(p) {
     .setCustomId('gu_question')
     .setPlaceholder('選擇問題或行動');
 
+  // 第一步：只顯示追問細節
   if (!p.questions.details) {
     m.addOptions(option('追問細節', '🔎', 'gu_details'));
-  }
-  if (!p.questions.appearance) {
+
+  // 第二步：完成細節後才顯示女仔特徵
+  } else if (!p.questions.appearance) {
     m.addOptions(option('追問女仔特徵', '👧', 'gu_appearance'));
-  }
-  if (p.questions.details && p.questions.appearance) {
+
+  // 第三步：兩個問題都完成後
+  } else {
     if (p.chatStage === 0) {
       m.addOptions(
         option('有冇發達貼士？', '💰', 'gu_tip'),
@@ -111,6 +114,7 @@ function createGuMenu(p) {
       );
     }
   }
+
   return row(m);
 }
 
@@ -248,8 +252,8 @@ function createBoyMenu(p) {
   } else if (p.stage === 4) {
     m.addOptions(
       option('寵物小精靈？', '⚡', 'boy_pokemon'),
-      option('Ben and Jerry？', '🍨', 'boy_ben_jerry'),
-      option('Toy Story？', '🎬', 'boy_toy_story'),
+      option('Ben and Jerry？', '🐭', 'boy_ben_jerry'),
+      option('Toy Story？', '🧸', 'boy_toy_story'),
       leave('boy_leave'),
     );
   }
