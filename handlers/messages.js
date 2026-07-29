@@ -43,7 +43,6 @@ async function handleMessage(message) {
   const acceptedAnswers = new Set([
     '愛美蘭小學吳皓訓',
     '愛美蘭小學吳皓訓老師',
-    '愛美蘭吳皓訓',
   ]);
 
   if (!acceptedAnswers.has(answer)) {
