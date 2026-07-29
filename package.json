@@ -1,0 +1,14 @@
+{
+  "name": "flight-mystery-bot",
+  "version": "1.0.0",
+  "description": "Discord Flight Mystery Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.22.1",
+    "dotenv": "^16.6.1"
+  }
+}
