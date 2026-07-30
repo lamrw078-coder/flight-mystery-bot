@@ -30,11 +30,19 @@ const {
   rejectWrongChannel,
 } = require('../utils/channel');
 
-const OPENING_QUESTION =
+const DEFAULT_OPENING =
   '**你：**「請問你啱啱有冇見到有個小妹妹喺附近？」';
 
-function addOpening(dialogue) {
-  return `${OPENING_QUESTION}\n\n${dialogue}`;
+const ECONOMY_OPENING =
+  '**你：**「請問你有冇見過坐35D嘅妹妹呀？」';
+
+function addOpening(dialogue, area = 'default') {
+  const opening =
+    area === 'economy'
+      ? ECONOMY_OPENING
+      : DEFAULT_OPENING;
+
+  return `${opening}\n\n${dialogue}`;
 }
 
 function addReminder(dialogue) {
@@ -398,7 +406,7 @@ async function handleEconomyNPC(interaction) {
   if (selected === 'comicArtist') {
     if (cp.comicArtist.completed) return completed(interaction, '女漫畫家');
     return interaction.update({
-      content: addOpening(COMIC_ARTIST_DIALOGUE.opening),
+      content: addOpening(COMIC_ARTIST_DIALOGUE.opening, 'economy'),
       components: [createComicMenu(cp.comicArtist)],
     });
   }
@@ -419,7 +427,7 @@ async function handleEconomyNPC(interaction) {
     }
 
     return interaction.update({
-      content: addOpening(LITTLE_BOY_DIALOGUE.opening),
+      content: addOpening(LITTLE_BOY_DIALOGUE.opening, 'economy'),
       components: [createBoyMenu(p)],
     });
   }
@@ -427,7 +435,7 @@ async function handleEconomyNPC(interaction) {
   if (selected === 'papaAli') {
     if (cp.papaAli.completed) return completed(interaction, 'Papa Ali');
     return interaction.update({
-      content: addOpening(PAPA_ALI_DIALOGUE.opening),
+      content: addOpening(PAPA_ALI_DIALOGUE.opening, 'economy'),
       components: [createPapaMenu(cp.papaAli)],
     });
   }
@@ -435,7 +443,7 @@ async function handleEconomyNPC(interaction) {
   if (selected === 'kaiting') {
     if (cp.kaiting.completed) return completed(interaction, '凱婷');
     return interaction.update({
-      content: addOpening(KAITING_DIALOGUE.opening),
+      content: addOpening(KAITING_DIALOGUE.opening, 'economy'),
       components: [createKaitingMenu(cp.kaiting)],
     });
   }

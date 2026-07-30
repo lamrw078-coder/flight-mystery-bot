@@ -224,7 +224,7 @@ const WRITER_WONG_DIALOGUE = {
 
 const SIU_YI_DIALOGUE = {
   opening: '**小怡：**\n「嗰度好多小朋友呀，小朋友真係好可愛呀！」',
-  askAgain: '**小怡：**\n「小妹妹？你知唔知佢叫咩名呀？我頭先走咗去同班小朋友打招呼，識晒佢哋啲名！」',
+  askAgain: '**小怡：**\n「小妹妹？你知唔知佢叫咩名呀？我頭先走咗去同班小學生打招呼，識晒佢哋啲名！」',
   name1: '**小怡：**「欣美？」',
   name2: '**小怡：**「心理？」',
   name3: '**小怡：**「新味？我教會10月有個退修營叫『合微道』，你有冇興趣 join？」',
@@ -236,12 +236,12 @@ const SIU_YI_DIALOGUE = {
     '祈咗好耐禱之後，就搬咗過去。」',
     '',
     '「頭先都見到個老師幾經辛苦先安撫到班學生，',
-    '而家難得佢哋瞓晒覺，我見佢自己都瞓着埋，仲跌咗呢個頭箍。」',
+    '而家難得佢哋瞓晒覺，我見佢自己都瞓着埋，仲跌咗呢個髮帶。」',
     '',
     '**（小怡已建立信任，請機組人員索取洗面髮帶。）**',
     '',
     '「你有冇咩凝聚一大班青年、俾大家更多歸屬感嘅方法可以過兩招俾我呀？',
-    '413-987-9802，隨時話我聽。」',
+    '437-987-9802，隨時話我聽。」',
     '',
     '**（小怡調查已經完成。）**',
   ].join('\n'),
@@ -263,7 +263,7 @@ const SENIOR_LAM_DIALOGUE = {
     '',
     '**播放《旋轉木馬》，全員學習跳舞後向空姐驗收。**',
   ].join('\n'),
-  final: '**（林師兄的跳舞任務已完成。）**\n**（林師兄調查已經完成。）**',
+  final: '**（林師兄：說了一大堆廢話）**\n**（林師兄調查已經完成。）**',
 };
 
 const TEACHER_DIALOGUE = {
@@ -372,7 +372,7 @@ const LITTLE_BOY_DIALOGUE = {
 };
 
 const PAPA_ALI_DIALOGUE = {
-  opening: '**Papa Ali：**\n「I remember her, she’s nice. My daughter likes the stuffed doll she held tight.」',
+  opening: '**Papa Ali：**\n「oh 35D girl, she’s nice. My daughter likes the stuffed doll she held tight.」',
 
   nice: '**Papa Ali：**\n「My daughter kept staring at the stuffed doll. The girl gave her a painting instead.」',
 
@@ -394,7 +394,7 @@ const PAPA_ALI_DIALOGUE = {
 };
 
 const KAITING_DIALOGUE = {
-  opening: '**凱婷：**\n「黑色頭髮嗰個女仔？佢頭先咪喺度玩自己個喼。」',
+  opening: '**凱婷：**\n「黑色頭髮嗰個女仔？佢頭先咪喺度玩自己個帽。」',
 
   steps: [
     {
@@ -455,10 +455,8 @@ const KAITING_DIALOGUE = {
         '會唔會大家已經變咗……」',
         '',
         '「雖然加拿大都有朋友，但有啲時候都會覺得好似得自己一個。」',
-
-        '「呀！頭先唔記得講，我見到有個紮馬尾嘅女仔，',
-        '俾個戴住洗面髮帶嘅男人帶走咗。」',
         '',
+        '「呀！頭先唔記得講，我見到有個紮馬尾嘅女仔，俾個戴住洗面髮帶嘅男人帶走咗。」',
         '「個女仔笑住一路嗌：『知道皓訓！明白皓訓！』」',
       ].join('\n'),
     },
