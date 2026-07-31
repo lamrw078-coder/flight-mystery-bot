@@ -193,45 +193,50 @@ function createWriterMenu(p) {
   }
 
   if (
-    p.questions.girl &&
-    p.questions.teacher
-  ) {
-    if (!p.chatted) {
+  p.questions.girl &&
+  p.questions.teacher
+) {
+  if (!p.chatted) {
+    m.addOptions(
+      chat('writer_chat'),
+      leave('writer_leave'),
+    );
+  } else {
+    if (!p.askedAlias) {
       m.addOptions(
-        chat('writer_chat'),
-        leave('writer_leave'),
+        option(
+          '子有別號乎？',
+          '🖋️',
+          'writer_alias',
+        ),
       );
-    } else {
-      if (!p.askedAlias) {
-        m.addOptions(
-          option(
-            '子有別號乎？',
-            '🖋️',
-            'writer_alias',
-          ),
-        );
-      }
+    }
 
-      if (!p.askedBook) {
-        m.addOptions(
-          option(
-            '子曾著書乎？',
-            '📚',
-            'writer_book',
-          ),
-        );
-      }
+    if (!p.askedBook) {
+      m.addOptions(
+        option(
+          '子曾著書乎？',
+          '📚',
+          'writer_book',
+        ),
+      );
+    }
 
+    if (!p.askedSchool) {
       m.addOptions(
         option(
           '尚記學名否？',
           '🏫',
           'writer_school',
         ),
-        leave('writer_leave'),
       );
     }
+
+    m.addOptions(
+      leave('writer_leave'),
+    );
   }
+}
 
   return row(m);
 }
@@ -712,24 +717,63 @@ async function handleWriter(interaction) {
   const cp = getChannelProgress(interaction.channelId);
   const p = cp.writerWong;
 
-  if (v === 'writer_leave') return interaction.update({ content: '離開調查其他乘客。\n\n請輸入 `/investigate` 繼續調查。', components: [] });
+  if (v === 'writer_leave') {
+    return interaction.update({
+      content:
+        '離開調查其他乘客。\n\n請輸入 `/investigate` 繼續調查。',
+      components: [],
+    });
+  }
 
-  if (v === 'writer_girl' && !p.questions.girl) {
+  if (
+    v === 'writer_girl' &&
+    !p.questions.girl
+  ) {
     p.questions.girl = true;
-    saveChannelProgress(interaction.channelId, cp);
-    return interaction.update({ content: WRITER_WONG_DIALOGUE.girl, components: [createWriterMenu(p)] });
+
+    saveChannelProgress(
+      interaction.channelId,
+      cp,
+    );
+
+    return interaction.update({
+      content: WRITER_WONG_DIALOGUE.girl,
+      components: [createWriterMenu(p)],
+    });
   }
 
-  if (v === 'writer_teacher' && !p.questions.teacher) {
+  if (
+    v === 'writer_teacher' &&
+    !p.questions.teacher
+  ) {
     p.questions.teacher = true;
-    saveChannelProgress(interaction.channelId, cp);
-    return interaction.update({ content: WRITER_WONG_DIALOGUE.teacher, components: [createWriterMenu(p)] });
+
+    saveChannelProgress(
+      interaction.channelId,
+      cp,
+    );
+
+    return interaction.update({
+      content: WRITER_WONG_DIALOGUE.teacher,
+      components: [createWriterMenu(p)],
+    });
   }
 
-  if (v === 'writer_chat' && !p.chatted) {
+  if (
+    v === 'writer_chat' &&
+    !p.chatted
+  ) {
     p.chatted = true;
-    saveChannelProgress(interaction.channelId, cp);
-    return interaction.update({ content: WRITER_WONG_DIALOGUE.chat, components: [createWriterMenu(p)] });
+
+    saveChannelProgress(
+      interaction.channelId,
+      cp,
+    );
+
+    return interaction.update({
+      content: WRITER_WONG_DIALOGUE.chat,
+      components: [createWriterMenu(p)],
+    });
   }
 
   if (
@@ -739,14 +783,29 @@ async function handleWriter(interaction) {
   ) {
     p.askedAlias = true;
 
+    const allAsked =
+      p.askedAlias &&
+      p.askedBook &&
+      p.askedSchool;
+
+    if (allAsked) {
+      p.completed = true;
+    }
+
     saveChannelProgress(
       interaction.channelId,
       cp,
     );
 
     return interaction.update({
-      content: WRITER_WONG_DIALOGUE.alias,
-      components: [createWriterMenu(p)],
+      content: allAsked
+        ? addReminder(
+            `${WRITER_WONG_DIALOGUE.alias}\n\n**（黃作家調查已經完成。）**`,
+          )
+        : WRITER_WONG_DIALOGUE.alias,
+      components: allAsked
+        ? []
+        : [createWriterMenu(p)],
     });
   }
 
@@ -757,21 +816,63 @@ async function handleWriter(interaction) {
   ) {
     p.askedBook = true;
 
+    const allAsked =
+      p.askedAlias &&
+      p.askedBook &&
+      p.askedSchool;
+
+    if (allAsked) {
+      p.completed = true;
+    }
+
     saveChannelProgress(
       interaction.channelId,
       cp,
     );
 
     return interaction.update({
-      content: WRITER_WONG_DIALOGUE.book,
-      components: [createWriterMenu(p)],
+      content: allAsked
+        ? addReminder(
+            `${WRITER_WONG_DIALOGUE.book}\n\n**（黃作家調查已經完成。）**`,
+          )
+        : WRITER_WONG_DIALOGUE.book,
+      components: allAsked
+        ? []
+        : [createWriterMenu(p)],
     });
   }
 
-  if (v === 'writer_school' && p.chatted) {
-    p.completed = true;
-    saveChannelProgress(interaction.channelId, cp);
-    return interaction.update({ content: addReminder(WRITER_WONG_DIALOGUE.schoolName), components: [] });
+  if (
+    v === 'writer_school' &&
+    p.chatted &&
+    !p.askedSchool
+  ) {
+    p.askedSchool = true;
+
+    const allAsked =
+      p.askedAlias &&
+      p.askedBook &&
+      p.askedSchool;
+
+    if (allAsked) {
+      p.completed = true;
+    }
+
+    saveChannelProgress(
+      interaction.channelId,
+      cp,
+    );
+
+    return interaction.update({
+      content: allAsked
+        ? addReminder(
+            `${WRITER_WONG_DIALOGUE.schoolName}\n\n**（黃作家調查已經完成。）**`,
+          )
+        : WRITER_WONG_DIALOGUE.schoolName,
+      components: allAsked
+        ? []
+        : [createWriterMenu(p)],
+    });
   }
 
   return stale(interaction);
