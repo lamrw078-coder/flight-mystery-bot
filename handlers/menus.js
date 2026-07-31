@@ -68,6 +68,23 @@ function leave(value) {
   return option('離開', '🚪', value);
 }
 
+function shuffleArray(items) {
+  const shuffled = [...items];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const randomIndex = Math.floor(
+      Math.random() * (i + 1),
+    );
+
+    [shuffled[i], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[i],
+    ];
+  }
+
+  return shuffled;
+}
+
 async function stale(interaction) {
   await interaction.reply({
     content:
@@ -164,18 +181,58 @@ function createWriterMenu(p) {
     .setPlaceholder('選擇問題或行動');
 
   if (!p.questions.girl) {
-    m.addOptions(option('查詢女孩', '👧', 'writer_girl'));
+    m.addOptions(
+      option('查詢女孩', '👧', 'writer_girl'),
+    );
   }
+
   if (!p.questions.teacher) {
-    m.addOptions(option('查詢老師', '📖', 'writer_teacher'));
+    m.addOptions(
+      option('查詢老師', '📖', 'writer_teacher'),
+    );
   }
-  if (p.questions.girl && p.questions.teacher) {
+
+  if (
+    p.questions.girl &&
+    p.questions.teacher
+  ) {
     if (!p.chatted) {
-      m.addOptions(chat('writer_chat'), leave('writer_leave'));
+      m.addOptions(
+        chat('writer_chat'),
+        leave('writer_leave'),
+      );
     } else {
-      m.addOptions(option('尚記學名否？', '🏫', 'writer_school'), leave('writer_leave'));
+      if (!p.askedAlias) {
+        m.addOptions(
+          option(
+            '子有別號乎？',
+            '🖋️',
+            'writer_alias',
+          ),
+        );
+      }
+
+      if (!p.askedBook) {
+        m.addOptions(
+          option(
+            '子曾著書乎？',
+            '📚',
+            'writer_book',
+          ),
+        );
+      }
+
+      m.addOptions(
+        option(
+          '尚記學名否？',
+          '🏫',
+          'writer_school',
+        ),
+        leave('writer_leave'),
+      );
     }
   }
+
   return row(m);
 }
 
@@ -282,21 +339,100 @@ function createPapaMenu(p) {
 }
 
 function createKaitingMenu(p) {
-  const m = new StringSelectMenuBuilder()
+  const menu = new StringSelectMenuBuilder()
     .setCustomId('kaiting_question')
     .setPlaceholder('選擇下一句說話');
 
-  const step = KAITING_DIALOGUE.steps[p.stage];
+  // 第一部分：正常順序對話
+  if (
+    p.introStage <
+    KAITING_DIALOGUE.introSteps.length
+  ) {
+    const step =
+      KAITING_DIALOGUE.introSteps[p.introStage];
 
-  if (step) {
-    m.addOptions(option(step.label, '💬', 'kaiting_next'));
+    menu.addOptions(
+      option(
+        step.label,
+        '💬',
+        'kaiting_intro_next',
+      ),
+    );
+
+    if (p.introStage > 0) {
+      menu.addOptions(
+        leave('kaiting_leave'),
+      );
+    }
+
+    return row(menu);
   }
 
-  if (p.stage > 0 && !p.completed) {
-    m.addOptions(leave('kaiting_leave'));
+  // 第二部分：1至9順序謎題
+  if (p.sequenceActive) {
+    const remainingOptions =
+      KAITING_DIALOGUE.sequenceOptions.filter(
+        (sequenceOption) =>
+          sequenceOption.number >
+          p.sequenceProgress,
+      );
+
+    const shuffledOptions =
+      shuffleArray(remainingOptions);
+
+    for (const sequenceOption of shuffledOptions) {
+      menu.addOptions(
+        option(
+          sequenceOption.label,
+          '🎵',
+          `kaiting_sequence_${sequenceOption.number}`,
+        ),
+      );
+    }
+
+    // 「離開」永遠放最後，不參與洗牌
+    menu.addOptions(
+      leave('kaiting_leave'),
+    );
+
+    return row(menu);
   }
 
-  return row(m);
+  // 成功完成1至9後
+  if (
+    p.sequenceCompleted &&
+    p.postStage === 0
+  ) {
+    menu.addOptions(
+      option(
+        KAITING_DIALOGUE.afterSequence.label,
+        '💬',
+        'kaiting_after_sequence',
+      ),
+      leave('kaiting_leave'),
+    );
+
+    return row(menu);
+  }
+
+  // 最後一句
+  if (
+    p.sequenceCompleted &&
+    p.postStage === 1
+  ) {
+    menu.addOptions(
+      option(
+        KAITING_DIALOGUE.finalStep.label,
+        '💬',
+        'kaiting_final',
+      ),
+      leave('kaiting_leave'),
+    );
+
+    return row(menu);
+  }
+
+  return row(menu);
 }
 
 /* ---------- NPC selections ---------- */
@@ -596,6 +732,42 @@ async function handleWriter(interaction) {
     return interaction.update({ content: WRITER_WONG_DIALOGUE.chat, components: [createWriterMenu(p)] });
   }
 
+  if (
+    v === 'writer_alias' &&
+    p.chatted &&
+    !p.askedAlias
+  ) {
+    p.askedAlias = true;
+
+    saveChannelProgress(
+      interaction.channelId,
+      cp,
+    );
+
+    return interaction.update({
+      content: WRITER_WONG_DIALOGUE.alias,
+      components: [createWriterMenu(p)],
+    });
+  }
+
+  if (
+    v === 'writer_book' &&
+    p.chatted &&
+    !p.askedBook
+  ) {
+    p.askedBook = true;
+
+    saveChannelProgress(
+      interaction.channelId,
+      cp,
+    );
+
+    return interaction.update({
+      content: WRITER_WONG_DIALOGUE.book,
+      components: [createWriterMenu(p)],
+    });
+  }
+
   if (v === 'writer_school' && p.chatted) {
     p.completed = true;
     saveChannelProgress(interaction.channelId, cp);
@@ -783,25 +955,166 @@ async function handlePapa(interaction) {
 }
 
 async function handleKaiting(interaction) {
-  const v = interaction.values[0];
-  const cp = getChannelProgress(interaction.channelId);
-  const p = cp.kaiting;
+  const selected = interaction.values[0];
 
-  if (v === 'kaiting_leave') return interaction.update({ content: '離開調查其他玩家乘客。\n\n請輸入 `/investigate` 繼續調查。', components: [] });
+  const channelProgress =
+    getChannelProgress(interaction.channelId);
 
-  if (v === 'kaiting_next') {
-    const step = KAITING_DIALOGUE.steps[p.stage];
-    if (!step) return stale(interaction);
+  const progress = channelProgress.kaiting;
 
-    p.stage += 1;
-    if (p.stage >= KAITING_DIALOGUE.steps.length) {
-      p.completed = true;
+  if (selected === 'kaiting_leave') {
+    return interaction.update({
+      content:
+        '你離開咗凱婷。\n\n請輸入 `/investigate` 繼續調查其他乘客。',
+      components: [],
+    });
+  }
+
+  // 第一部分：正常對話
+  if (selected === 'kaiting_intro_next') {
+    const step =
+      KAITING_DIALOGUE.introSteps[
+        progress.introStage
+      ];
+
+    if (!step) {
+      return stale(interaction);
     }
-    saveChannelProgress(interaction.channelId, cp);
+
+    progress.introStage += 1;
+
+    // 完成「其實最近成日諗好多嘢」後，
+    // 正式開始1至9順序謎題
+    if (
+      progress.introStage >=
+      KAITING_DIALOGUE.introSteps.length
+    ) {
+      progress.sequenceActive = true;
+      progress.sequenceProgress = 0;
+    }
+
+    saveChannelProgress(
+      interaction.channelId,
+      channelProgress,
+    );
 
     return interaction.update({
-      content: p.completed ? addReminder(step.response) : step.response,
-      components: p.completed ? [] : [createKaitingMenu(p)],
+      content: step.response,
+      components: [
+        createKaitingMenu(progress),
+      ],
+    });
+  }
+
+  // 第二部分：處理1至9選項
+  if (
+    selected.startsWith(
+      'kaiting_sequence_',
+    ) &&
+    progress.sequenceActive
+  ) {
+    const selectedNumber = Number(
+      selected.replace(
+        'kaiting_sequence_',
+        '',
+      ),
+    );
+
+    const expectedNumber =
+      progress.sequenceProgress + 1;
+
+    // 選錯順序
+    if (selectedNumber !== expectedNumber) {
+      progress.sequenceProgress = 0;
+
+      saveChannelProgress(
+        interaction.channelId,
+        channelProgress,
+      );
+
+      return interaction.update({
+        content:
+          '**凱婷：**「嗯？」\n\n**請重新嘗試**',
+        components: [
+          createKaitingMenu(progress),
+        ],
+      });
+    }
+
+    const sequenceOption =
+      KAITING_DIALOGUE.sequenceOptions.find(
+        (item) =>
+          item.number === selectedNumber,
+      );
+
+    if (!sequenceOption) {
+      return stale(interaction);
+    }
+
+    progress.sequenceProgress += 1;
+
+    // 完成1至9
+    if (
+      progress.sequenceProgress >=
+      KAITING_DIALOGUE.sequenceOptions.length
+    ) {
+      progress.sequenceActive = false;
+      progress.sequenceCompleted = true;
+    }
+
+    saveChannelProgress(
+      interaction.channelId,
+      channelProgress,
+    );
+
+    return interaction.update({
+      content: sequenceOption.response,
+      components: [
+        createKaitingMenu(progress),
+      ],
+    });
+  }
+
+  // 完成1至9後的長對話
+  if (
+    selected === 'kaiting_after_sequence' &&
+    progress.sequenceCompleted &&
+    progress.postStage === 0
+  ) {
+    progress.postStage = 1;
+
+    saveChannelProgress(
+      interaction.channelId,
+      channelProgress,
+    );
+
+    return interaction.update({
+      content:
+        KAITING_DIALOGUE.afterSequence.response,
+      components: [
+        createKaitingMenu(progress),
+      ],
+    });
+  }
+
+  // 最後完成
+  if (
+    selected === 'kaiting_final' &&
+    progress.sequenceCompleted &&
+    progress.postStage === 1
+  ) {
+    progress.completed = true;
+
+    saveChannelProgress(
+      interaction.channelId,
+      channelProgress,
+    );
+
+    return interaction.update({
+      content: addReminder(
+        KAITING_DIALOGUE.finalStep.response,
+      ),
+      components: [],
     });
   }
 

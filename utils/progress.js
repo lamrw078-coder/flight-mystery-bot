@@ -98,6 +98,8 @@ function createDefaultChannelProgress() {
         teacher: false,
       },
       chatted: false,
+      askedAlias: false,
+      askedBook: false,
       completed: false,
     },
 
@@ -143,7 +145,11 @@ function createDefaultChannelProgress() {
     },
 
     kaiting: {
-      stage: 0,
+      introStage: 0,
+      sequenceActive: false,
+      sequenceProgress: 0,
+      sequenceCompleted: false,
+      postStage: 0,
       completed: false,
     },
   };
